@@ -26,7 +26,7 @@ interface ILongRunningProcessManager<Args extends any[], Result> {
 class LongRunningProcessManager<Args extends any[], Result> implements ILongRunningProcessManager<Args, Result> {
   constructor(options: {
     process: (...args: Args) => PromiseLike<Result>
-    store: IStore<Result>
+    store: IStore<unknown>
   })
 }
 ```

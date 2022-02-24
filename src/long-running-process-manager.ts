@@ -23,12 +23,12 @@ type Event = 'start' | 'started' | 'resolve' | 'reject'
 
 export class LongRunningProcessManager<Args extends any[], Result> implements ILongRunningProcessManager<Args, Result> {
   private process: (...args: Args) => PromiseLike<Result>
-  private store: IStore<Result | SerializableError>
+  private store: IStore<unknown>
   private processIdToFSM = new Map<string, FiniteStateMachine<State, Event> | undefined>()
 
   constructor(options: {
     process: (...args: Args) => PromiseLike<Result>
-    store: IStore<Result>
+    store: IStore<unknown>
   }) {
     this.process = options.process
     this.store = options.store
