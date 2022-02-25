@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.4](http://git.blackglory.me:2222/BlackGlory/long-running-process/compare/v0.1.3...v0.1.4) (2022-02-25)
+
+
+### Features
+
+* improve options of LongRunningProcessInvoker ([2ee0cdb](http://git.blackglory.me:2222/BlackGlory/long-running-process/commit/2ee0cdb2691221cca6206413101b859a3c30809f))
+
 ### [0.1.3](http://git.blackglory.me:2222/BlackGlory/long-running-process/compare/v0.1.2...v0.1.3) (2022-02-25)
 
 
