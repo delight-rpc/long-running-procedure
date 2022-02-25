@@ -7,7 +7,6 @@ yarn add @private/long-running-process
 ```
 
 ## API
-### LongRunningProcessManager
 ```ts
 interface IStore<T> {
   set(key: string, value: T): Awaitable<void>
@@ -18,15 +17,33 @@ interface IStore<T> {
 interface ILongRunningProcessManager<Args extends any[], Result> {
   startProcess(...args: Args): Awaitable<string>
   endProcess(id: string): Awaitable<null>
-  getProcessState(id: string): Awaitable<'starting' | 'running' | 'done' | 'error'>
+  getProcessState(id: string): Awaitable<State>
   getProcessResult(id: string): Awaitable<Result>
   getProcessError(id: string): Awaitable<SerializableError>
 }
 
+type ProcessState = 'starting' | 'running' | 'done' | 'error'
+```
+
+### LongRunningProcessManager
+```ts
 class LongRunningProcessManager<Args extends any[], Result> implements ILongRunningProcessManager<Args, Result> {
   constructor(options: {
     process: (...args: Args) => PromiseLike<Result>
     store: IStore<unknown>
   })
+}
+```
+
+### LongRunningProcessInvoker
+```ts
+class LongRunningProcessInvoker<Args extends any[], Result> {
+  constructor(options: {
+    process: ILongRunningProcessManager<Args, Result>
+  , pollingInterval: number
+  , withRetry: <T>(fn: () => T) => T
+  })
+
+  invoke(args: Args): Promise<Awaited<Result>>
 }
 ```

@@ -2,29 +2,14 @@ import { FiniteStateMachine } from '@blackglory/structures'
 import { nanoid } from 'nanoid'
 import { assert, normalize, SerializableError, CustomError } from '@blackglory/errors'
 import { isError, isntUndefined } from '@blackglory/types'
-import { Awaitable } from 'justypes'
+import { ILongRunningProcessManager, IStore, ProcessState } from './types'
 
-export interface IStore<T> {
-  set(key: string, value: T): Awaitable<void>
-  get(key: string): Awaitable<T | null>
-  delete(key: string): Awaitable<void>
-}
-
-export interface ILongRunningProcessManager<Args extends any[], Result> {
-  startProcess(...args: Args): Awaitable<string>
-  endProcess(id: string): Awaitable<null>
-  getProcessState(id: string): Awaitable<'starting' | 'running' | 'done' | 'error'>
-  getProcessResult(id: string): Awaitable<Result>
-  getProcessError(id: string): Awaitable<SerializableError>
-}
-
-type State = 'starting' | 'running' | 'done' | 'error'
 type Event = 'start' | 'started' | 'resolve' | 'reject'
 
 export class LongRunningProcessManager<Args extends any[], Result> implements ILongRunningProcessManager<Args, Result> {
   private process: (...args: Args) => PromiseLike<Result>
   private store: IStore<unknown>
-  private processIdToFSM = new Map<string, FiniteStateMachine<State, Event> | undefined>()
+  private processIdToFSM = new Map<string, FiniteStateMachine<ProcessState, Event> | undefined>()
 
   constructor(options: {
     process: (...args: Args) => PromiseLike<Result>
@@ -74,7 +59,7 @@ export class LongRunningProcessManager<Args extends any[], Result> implements IL
     throw new Error('Unknown state')
   }
 
-  getProcessState(id: string): State {
+  getProcessState(id: string): ProcessState {
     const fsm = this.getFSM(id)
     return fsm.state
   }
@@ -99,14 +84,14 @@ export class LongRunningProcessManager<Args extends any[], Result> implements IL
     }
   }
 
-  private getFSM(id: string): FiniteStateMachine<State, Event> {
+  private getFSM(id: string): FiniteStateMachine<ProcessState, Event> {
     const fsm = this.processIdToFSM.get(id)
     assert(isntUndefined(fsm), `The process ${id} does not exist`)
     return fsm
   }
 
-  private createFSM(): FiniteStateMachine<State, Event> {
-    return new FiniteStateMachine<State, Event>({
+  private createFSM(): FiniteStateMachine<ProcessState, Event> {
+    return new FiniteStateMachine<ProcessState, Event>({
       starting: { started: 'running' }
     , running: {
         resolve: 'done'

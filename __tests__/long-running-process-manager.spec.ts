@@ -1,4 +1,5 @@
-import { LongRunningProcessManager, IStore } from '@src/long-running-process-manager'
+import { LongRunningProcessManager } from '@src/long-running-process-manager'
+import { IStore } from '@src/types'
 import { Deferred, delay } from 'extra-promise'
 import { getErrorPromise } from 'return-style'
 
