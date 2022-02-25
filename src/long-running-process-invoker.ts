@@ -5,12 +5,12 @@ import { hydrate } from '@blackglory/errors'
 export class LongRunningProcessInvoker<Args extends any[], Result> {
   private manager: ILongRunningProcessManager<Args, Result>
   private pollingInterval: number
-  private withRetry: <T>(fn: () => T) => T
+  private withRetry: <T>(fn: () => T | PromiseLike<T>) => PromiseLike<T>
 
   constructor(options: {
     manager: ILongRunningProcessManager<Args, Result>
   , pollingInterval: number
-  , withRetry: <T>(fn: () => T) => T
+  , withRetry: <T>(fn: () => T | PromiseLike<T>) => PromiseLike<T>
   }) {
     this.manager = options.manager
     this.pollingInterval = options.pollingInterval

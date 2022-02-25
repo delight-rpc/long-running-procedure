@@ -41,7 +41,7 @@ class LongRunningProcessInvoker<Args extends any[], Result> {
   constructor(options: {
     process: ILongRunningProcessManager<Args, Result>
   , pollingInterval: number
-  , withRetry: <T>(fn: () => T) => T
+  , withRetry: <T>(fn: () => T | PromiseLike<T>) => PromiseLike<T>
   })
 
   invoke(args: Args): Promise<Awaited<Result>>

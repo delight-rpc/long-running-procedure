@@ -20,7 +20,7 @@ describe('LongRunningProcessInvoker', () => {
     const invoker = new LongRunningProcessInvoker({
       manager
     , pollingInterval: 1000
-    , withRetry: x => x()
+    , withRetry: async x => x()
     })
     const result = await invoker.invoke('foo')
 
@@ -50,7 +50,7 @@ describe('LongRunningProcessInvoker', () => {
     const invoker = new LongRunningProcessInvoker({
       manager
     , pollingInterval: 1000
-    , withRetry: x => x()
+    , withRetry: async x => x()
     })
     const err = await getErrorPromise(invoker.invoke('foo'))
 
