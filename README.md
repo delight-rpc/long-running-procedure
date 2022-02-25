@@ -40,8 +40,8 @@ class LongRunningProcessManager<Args extends any[], Result> implements ILongRunn
 class LongRunningProcessInvoker<Args extends any[], Result> {
   constructor(options: {
     process: ILongRunningProcessManager<Args, Result>
-  , pollingInterval: number
-  , withRetry: <T>(fn: () => T | PromiseLike<T>) => PromiseLike<T>
+  , pollingInterval?: number
+  , withRetry?: <T>(fn: () => T | PromiseLike<T>) => PromiseLike<T>
   })
 
   invoke(args: Args): Promise<Awaited<Result>>
