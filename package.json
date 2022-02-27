@@ -1,6 +1,6 @@
 {
   "name": "@private/long-running-process",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "",
   "files": [
     "lib",
