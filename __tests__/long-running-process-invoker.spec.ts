@@ -17,7 +17,10 @@ describe('LongRunningProcessInvoker', () => {
     , getProcessError: jest.fn()
     }
 
-    const invoker = new LongRunningProcessInvoker({ manager })
+    const invoker = new LongRunningProcessInvoker({
+      manager
+    , pollingInterval: 1000
+    })
     const result = await invoker.invoke('foo')
 
     expect(result).toBe('bar')
@@ -43,7 +46,10 @@ describe('LongRunningProcessInvoker', () => {
         .mockResolvedValue(normalize(new Error('bar')))
     }
 
-    const invoker = new LongRunningProcessInvoker({ manager })
+    const invoker = new LongRunningProcessInvoker({
+      manager
+    , pollingInterval: 1000
+    })
     const err = await getErrorPromise(invoker.invoke('foo'))
 
     expect(err).toBeInstanceOf(Error)

@@ -1,7 +1,6 @@
 import { delay } from 'extra-promise'
 import { ILongRunningProcessManager } from './types'
 import { hydrate } from '@blackglory/errors'
-import ms from 'ms'
 
 export class LongRunningProcessInvoker<Args extends any[], Result> {
   private manager: ILongRunningProcessManager<Args, Result>
@@ -14,7 +13,7 @@ export class LongRunningProcessInvoker<Args extends any[], Result> {
   , withRetry?: <T>(fn: () => T | PromiseLike<T>) => PromiseLike<T>
   }) {
     this.manager = options.manager
-    this.pollingInterval = options.pollingInterval ?? ms('1s')
+    this.pollingInterval = options.pollingInterval ?? 100
     this.withRetry = options.withRetry ?? (async x => await x())
   }
 
