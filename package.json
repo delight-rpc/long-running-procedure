@@ -8,6 +8,7 @@
   ],
   "main": "lib/es2018/index.js",
   "typings": "lib/es2018/index.d.ts",
+  "sideEffects": false,
   "author": "BlackGlory <woshenmedoubuzhidao@blackglory.me>",
   "license": "UNLICENSED",
   "publishConfig": {
