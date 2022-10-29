@@ -1,4 +1,4 @@
-import { FiniteStateMachine } from '@blackglory/structures'
+import { FiniteStateMachine } from 'extra-fsm'
 import { nanoid } from 'nanoid'
 import { assert, normalize, SerializableError, CustomError } from '@blackglory/errors'
 import { isError, isntUndefined } from '@blackglory/types'
