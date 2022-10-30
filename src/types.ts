@@ -1,18 +1,14 @@
-import { SerializableError } from '@blackglory/errors'
-import { Awaitable } from 'justypes'
+import { Awaitable, Nullable, Nullish } from '@blackglory/prelude'
 
-export interface IStore<T> {
-  set(key: string, value: T): Awaitable<void>
-  get(key: string): Awaitable<T | null>
-  delete(key: string): Awaitable<void>
+export enum ProcessState {
+  Pending = 'pending'
+, Resolved = 'resolved'
+, Rejected = 'rejected'
 }
 
-export interface ILongRunningProcessManager<Args extends any[], Result> {
-  startProcess(...args: Args): Awaitable<string>
-  endProcess(id: string): Awaitable<null>
-  getProcessState(id: string): Awaitable<ProcessState>
-  getProcessResult(id: string): Awaitable<Result>
-  getProcessError(id: string): Awaitable<SerializableError>
+export interface ILongRunningProcessService<Args extends any[], Result, Error> {
+  create(...args: Args): Awaitable<string>
+  getState(id: string): Awaitable<Nullable<ProcessState>>
+  getValue(id: string): Awaitable<Nullable<Result | Error>>
+  delete(id: string): Awaitable<Nullish>
 }
-
-export type ProcessState = 'starting' | 'running' | 'done' | 'error'

@@ -701,6 +701,14 @@
   dependencies:
     "@blackglory/types" "^1.0.0"
 
+"@blackglory/log@^1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@blackglory/log/-/log-1.3.0.tgz#19769baed807b5827dece5a24dd4c6d17ed5dc9a"
+  integrity sha512-5SXxd0yWi2bgKQr4Vd+OVnkucnBUCD59bUrQ9/CstADGUkyZxtRsiEnNp66fgXHUE6gU9iZ+UmF860l1mnxYnw==
+  dependencies:
+    "@blackglory/go" "^1.1.2"
+    "@blackglory/types" "^1.3.0"
+
 "@blackglory/pass@^1.0.0", "@blackglory/pass@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@blackglory/pass/-/pass-1.1.0.tgz#f281b7647bf542f98ede594338742ab406f97afc"
@@ -720,6 +728,20 @@
     iterable-operator "^1.0.0"
     justypes "^2.0.0"
 
+"@blackglory/prelude@^0.1.6":
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/@blackglory/prelude/-/prelude-0.1.7.tgz#0a406ae3a6bb02908a8805c28e0dd5544db7eb01"
+  integrity sha512-1dpPmqPD+QO0ytrroZfkMAtKQZyZPXs+qhQfRN7rIF2jMwEKy8MI++CMh/piEIoUAG7xv/h9oA99I6rOkvIFUA==
+  dependencies:
+    "@blackglory/errors" "^2.2.2"
+    "@blackglory/go" "^1.1.2"
+    "@blackglory/log" "^1.3.0"
+    "@blackglory/pass" "^1.1.0"
+    "@blackglory/types" "^1.4.0"
+    extra-lazy "^1.3.1"
+    iterable-operator "^2.1.0"
+    justypes "^3.0.0"
+
 "@blackglory/structures@^0.11.3":
   version "0.11.3"
   resolved "https://registry.yarnpkg.com/@blackglory/structures/-/structures-0.11.3.tgz#eaed727da242a1d6454e148920b87c57cb2d0c2d"
@@ -732,12 +754,20 @@
     iterable-operator "^1.2.1"
     justypes "^3.0.0"
 
-"@blackglory/types@^1.0.0", "@blackglory/types@^1.0.1", "@blackglory/types@^1.2.1", "@blackglory/types@^1.3.0":
+"@blackglory/types@^1.0.0", "@blackglory/types@^1.2.1":
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@blackglory/types/-/types-1.3.0.tgz#32fbdc95fff4b15609942e8b87f1a5490b7b0c71"
   integrity sha512-qW9nWqmQT3ShT2NYP3p2ohpPvs+wS+YfOXbKbf37HTdWJOGuCafMSa7laMJF0BnBJwwTr+uyJSZru+QMMmgvUg==
   dependencies:
     justypes "^2.0.0"
+    lodash "^4.17.21"
+
+"@blackglory/types@^1.3.0", "@blackglory/types@^1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@blackglory/types/-/types-1.4.0.tgz#412c1fc0de7c5f3ecbdd6984c15eb80c8cee393a"
+  integrity sha512-pOVWHkbM6wGGBmAgc6zKGRyds4amAV9GOYOiWQp7McaTp8QREDQZlcIrgTwQKtA9StBrKm/GC874RpDg/AIf7g==
+  dependencies:
+    justypes "^3.0.0"
     lodash "^4.17.21"
 
 "@commitlint/cli@^17.1.2":
@@ -2881,7 +2911,7 @@ extra-lazy@^1.0.0:
   dependencies:
     lodash "^4.17.21"
 
-extra-lazy@^1.1.1:
+extra-lazy@^1.1.1, extra-lazy@^1.3.1:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/extra-lazy/-/extra-lazy-1.3.1.tgz#f8d74084e8806a6c1906ef292b4d6834e0b35517"
   integrity sha512-C55Cr/dQWQHdwuMTF+ySNMYqydVclmKdgFHoC/8gTu5Zoe1Nrx6jgArwfZ+7jKU78VjDfhrkGAJ38ucf0lozeQ==
@@ -4659,7 +4689,7 @@ ms@2.1.2:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
   integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
 
-nanoid@^3.3.1:
+nanoid@3:
   version "3.3.4"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.4.tgz#730b67e3cd09e2deacf03c027c81c9d9dbc5e8ab"
   integrity sha512-MqBkQh/OHTS2egovRtLk45wEyNXwF+cokD+1YPf9u5VfJiRdAiRwB2froX5Co9Rh20xs4siNPm8naNotSD6RBw==

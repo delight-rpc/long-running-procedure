@@ -1,3 +1,3 @@
-export * from './long-running-process-invoker'
-export * from './long-running-process-manager'
+export * from './long-running-process-service'
+export * from './long-running-process-client'
 export * from './types'

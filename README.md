@@ -8,42 +8,48 @@ yarn add @private/long-running-process
 
 ## API
 ```ts
-interface IStore<T> {
-  set(key: string, value: T): Awaitable<void>
-  get(key: string): Awaitable<T | null>
-  delete(key: string): Awaitable<void>
+enum ProcessState {
+  Pending = 'pending'
+, Resolved = 'resolved'
+, Rejected = 'rejected'
 }
 
-interface ILongRunningProcessManager<Args extends any[], Result> {
-  startProcess(...args: Args): Awaitable<string>
-  endProcess(id: string): Awaitable<null>
-  getProcessState(id: string): Awaitable<State>
-  getProcessResult(id: string): Awaitable<Result>
-  getProcessError(id: string): Awaitable<SerializableError>
+interface ILongRunningProcessService<Args extends any[], Result, Error> {
+  create(...args: Args): Awaitable<string>
+  getState(id: string): Awaitable<Nullable<ProcessState>>
+  getValue(id: string): Awaitable<Nullable<Result | Error>>
+  delete(id: string): Awaitable<Nullish>
 }
-
-type ProcessState = 'starting' | 'running' | 'done' | 'error'
 ```
 
-### LongRunningProcessManager
+### LongRunningProcessClient
 ```ts
-class LongRunningProcessManager<Args extends any[], Result> implements ILongRunningProcessManager<Args, Result> {
-  constructor(options: {
+class LongRunningProcessClient<Args extends any[], Result, Error> {
+  constructor(
+    proxy: ILongRunningProcess<Args, Result, Error>
+  , pollingInterval: number
+  )
+
+  call(...args: Args): Promise<Awaited<Result>>
+}
+```
+
+### LongRunningProcess
+```ts
+interface ILongRunningProcessServiceStore<Result, Error> {
+  setState(id: string, state: ProcessState): Awaitable<Nullish>
+  getState(id: string): Awaitable<Nullable<ProcessState>>
+
+  setValue(id: string, value: Result | Error): Awaitable<Nullish>
+  getValue(id: string): Awaitable<Nullable<Result | Error>>
+
+  delete(id: string): Awaitable<Nullish>
+}
+
+class LongRunningProcessService<Args extends any[], Result, Error> implements ILongRunningProcessService<Args extends any[], Result, Error> {
+  constructor(
     process: (...args: Args) => PromiseLike<Result>
-    store: IStore<unknown>
-  })
-}
-```
-
-### LongRunningProcessInvoker
-```ts
-class LongRunningProcessInvoker<Args extends any[], Result> {
-  constructor(options: {
-    process: ILongRunningProcessManager<Args, Result>
-  , pollingInterval?: number
-  , withRetry?: <T>(fn: () => T | PromiseLike<T>) => PromiseLike<T>
-  })
-
-  invoke(args: Args): Promise<Awaited<Result>>
+  , store: ILongRunningProcessServiceStore<Result, Error>
+  )
 }
 ```
