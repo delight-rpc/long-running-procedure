@@ -58,12 +58,12 @@ export class LongRunningProcessService<
     return id
   }
 
-  async get(id: string): Promise<Nullable<ProcessDetails<Result, Error>>> {
-    const processDetails = await this.store.get(id)
-    return processDetails as Nullable<ProcessDetails<Result, Error>>
+  async get(id: string): Promise<ProcessDetails<Result, Error> | null> {
+    const processDetails = await this.store.get(id) ?? null
+    return processDetails as ProcessDetails<Result, Error> | null
   }
 
-  async delete(id: string): Promise<Nullish> {
+  async delete(id: string): Promise<null> {
     const processDetails = await this.get(id)
     assert(isntNullish(processDetails), 'process does not exist')
 
@@ -75,7 +75,7 @@ export class LongRunningProcessService<
 
     await this.store.delete(id)
 
-    return undefined
+    return null
   }
 
   private createId(): string {

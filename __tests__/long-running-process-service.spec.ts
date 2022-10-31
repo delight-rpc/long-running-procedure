@@ -31,7 +31,7 @@ describe('LongRunningProcessService', () => {
 
     expect(result1).toStrictEqual([ProcessState.Pending])
     expect(result2).toStrictEqual([ProcessState.Resolved, 'result'])
-    expect(result3).toBe(undefined)
+    expect(result3).toBe(null)
   })
 
   test(`${ProcessState.Pending}, ${ProcessState.Rejected}`, async () => {
@@ -61,7 +61,7 @@ describe('LongRunningProcessService', () => {
 
     expect(result1).toStrictEqual([ProcessState.Pending])
     expect(result2).toStrictEqual([ProcessState.Rejected, 'error'])
-    expect(result3).toBe(undefined)
+    expect(result3).toBe(null)
   })
 })
 
