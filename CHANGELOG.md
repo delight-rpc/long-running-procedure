@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.4.0](https://git.blackglory.me:2222/BlackGlory/long-running-process/compare/v0.3.0...v0.4.0) (2022-10-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* Modified generics of `LongRunningProcessService`
+
+### Bug Fixes
+
+* add `StoreResult`, `StoreError` ([1a64ae7](https://git.blackglory.me:2222/BlackGlory/long-running-process/commit/1a64ae7d095d024fbcc1c7d7d2d42e86b06b457e))
+
 ## [0.3.0](https://git.blackglory.me:2222/BlackGlory/long-running-process/compare/v0.2.0...v0.3.0) (2022-10-31)
 
 
