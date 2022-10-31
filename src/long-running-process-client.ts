@@ -8,13 +8,14 @@ export class LongRunningProcessClient<Args extends any[], Result, Error> {
   , private pollingInterval: number
   ) {}
 
-  async call(...args: Args): Promise<Awaited<Result>> {
+  async call(...args: Args): Promise<Result> {
     const id = await this.service.create(...args)
 
     while (true) {
-      const state = await this.service.getState(id)
-      assert(isntNullish(state), 'state is nullish')
+      const response = await this.service.get(id)
+      assert(isntNullish(response), 'state is nullish')
 
+      const [state, value] = response
       switch (state) {
         case ProcessState.Pending: {
           await delay(this.pollingInterval)
@@ -22,20 +23,14 @@ export class LongRunningProcessClient<Args extends any[], Result, Error> {
         }
         case ProcessState.Resolved: {
           try {
-            const result = await this.service.getValue(id)
-            assert(isntNullish(result), 'result is nullish')
-
-            return result as Awaited<Result>
+            return value
           } finally {
             await this.service.delete(id)
           }
         }
         case ProcessState.Rejected: {
           try {
-            const error = await this.service.getValue(id)
-            assert(isntNullish(error), 'error is nullish')
-
-            throw error as Awaited<Error>
+            throw value
           } finally {
             await this.service.delete(id)
           }

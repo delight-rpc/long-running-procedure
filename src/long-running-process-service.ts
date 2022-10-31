@@ -1,16 +1,12 @@
 import { IFiniteStateMachineSchema, transition } from 'extra-fsm'
 import { assert, Awaitable, Nullable, Nullish, isntNullish } from '@blackglory/prelude'
 import { nanoid } from 'nanoid'
-import { ILongRunningProcessService, ProcessState } from './types'
+import { ILongRunningProcessService, ProcessState, ProcessDetails } from './types'
 import { toResultPromise } from 'return-style'
 
 export interface ILongRunningProcessServiceStore<Result, Error> {
-  setState(id: string, state: ProcessState): Awaitable<Nullish>
-  getState(id: string): Awaitable<Nullable<ProcessState>>
-
-  setValue(id: string, value: Result | Error): Awaitable<Nullish>
-  getValue(id: string): Awaitable<Nullable<Result | Error>>
-
+  set(id: string, value: ProcessDetails<Result, Error>): Awaitable<Nullish>
+  get(id: string): Awaitable<Nullable<ProcessDetails<Result, Error>>>
   delete(id: string): Awaitable<Nullish>
 }
 
@@ -31,38 +27,36 @@ export class LongRunningProcessService<Args extends any[], Result, Error> implem
 
   async create(...args: Args): Promise<string> {
     const id = this.createId()
-    await this.store.setState(id, ProcessState.Pending)
+    await this.store.set(id, [ProcessState.Pending])
 
     queueMicrotask(async () => {
       const result = await toResultPromise<Error, Result>(this.process(...args))
 
-      const state = await this.getState(id)
-      assert(isntNullish(state), 'state is nullish')
+      const processDetails = await this.get(id)
+      assert(isntNullish(processDetails), 'process does not exist')
 
+      const [state] = processDetails
       if (result.isOk()) {
-        const newState = transition(schema, state, 'resolve')
-        await this.store.setValue(id, result.unwrap())
-        await this.store.setState(id, newState)
+        const newState = transition(schema, state, 'resolve') as ProcessState.Resolved
+        await this.store.set(id, [newState, result.unwrap()])
       } else {
-        const newState = transition(schema, state, 'reject')
-        await this.store.setValue(id, result.unwrapErr())
-        await this.store.setState(id, newState)
+        const newState = transition(schema, state, 'reject') as ProcessState.Rejected
+        await this.store.set(id, [newState, result.unwrapErr()])
       }
     })
 
     return id
   }
 
-  async getState(id: string): Promise<Nullable<ProcessState>> {
-    return await this.store.getState(id)
-  }
-
-  async getValue(id: string): Promise<Nullable<Result | Error>> {
-    return await this.store.getValue(id)
+  async get(id: string): Promise<Nullable<ProcessDetails<Result, Error>>> {
+    return await this.store.get(id)
   }
 
   async delete(id: string): Promise<Nullish> {
-    const state = await this.getState(id)
+    const processDetails = await this.get(id)
+    assert(isntNullish(processDetails), 'process does not exist')
+
+    const [state] = processDetails
     assert(
       state === ProcessState.Resolved || state === ProcessState.Rejected
     , `The state of process is not ${ProcessState.Resolved} or ${ProcessState.Rejected}`

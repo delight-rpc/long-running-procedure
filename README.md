@@ -14,10 +14,14 @@ enum ProcessState {
 , Rejected = 'rejected'
 }
 
+type ProcessDetails<Result, Error> =
+| [state: ProcessState.Pending]
+| [state: ProcessState.Resolved, result: Result]
+| [state: ProcessState.Rejected, error: Error]
+
 interface ILongRunningProcessService<Args extends any[], Result, Error> {
   create(...args: Args): Awaitable<string>
-  getState(id: string): Awaitable<Nullable<ProcessState>>
-  getValue(id: string): Awaitable<Nullable<Result | Error>>
+  get(id: string): Awaitable<Nullable<ProcessDetails<Result, Error>>>
   delete(id: string): Awaitable<Nullish>
 }
 ```
@@ -26,23 +30,19 @@ interface ILongRunningProcessService<Args extends any[], Result, Error> {
 ```ts
 class LongRunningProcessClient<Args extends any[], Result, Error> {
   constructor(
-    proxy: ILongRunningProcess<Args, Result, Error>
+    service: ILongRunningProcessService<Args, Result, Error>
   , pollingInterval: number
   )
 
-  call(...args: Args): Promise<Awaited<Result>>
+  call(...args: Args): Promise<Result>
 }
 ```
 
 ### LongRunningProcess
 ```ts
 interface ILongRunningProcessServiceStore<Result, Error> {
-  setState(id: string, state: ProcessState): Awaitable<Nullish>
-  getState(id: string): Awaitable<Nullable<ProcessState>>
-
-  setValue(id: string, value: Result | Error): Awaitable<Nullish>
-  getValue(id: string): Awaitable<Nullable<Result | Error>>
-
+  set(id: string, value: ProcessDetails<Result, Error>): Awaitable<Nullish>
+  get(id: string): Awaitable<Nullable<ProcessDetails<Result, Error>>>
   delete(id: string): Awaitable<Nullish>
 }
 

@@ -10,13 +10,12 @@ describe('LongRunningProcessClient', () => {
         startTime = Date.now()
         return 'id'
       })
-    , getState: jest.fn(() => {
+    , get: jest.fn(() => {
         const elapsedTime = Date.now() - startTime
-        if (elapsedTime < 450) return ProcessState.Pending
+        if (elapsedTime < 450) return [ProcessState.Pending]
 
-        return ProcessState.Resolved
+        return [ProcessState.Resolved, 'result']
       })
-    , getValue: jest.fn(() => 'result')
     , delete: jest.fn()
     }
     const client = new LongRunningProcessClient(service, 100)
@@ -24,7 +23,7 @@ describe('LongRunningProcessClient', () => {
     const result = await client.call('foo')
 
     expect(result).toBe('result')
-    expect(service.getState).toBeCalledTimes(6)
+    expect(service.get).toBeCalledTimes(6)
   })
 
   test(`${ProcessState.Rejected}`, async () => {
@@ -35,13 +34,12 @@ describe('LongRunningProcessClient', () => {
         startTime = Date.now()
         return 'id'
       })
-    , getState: jest.fn(() => {
+    , get: jest.fn(() => {
         const elapsedTime = Date.now() - startTime
-        if (elapsedTime < 450) return ProcessState.Pending
+        if (elapsedTime < 450) return [ProcessState.Pending]
 
-        return ProcessState.Rejected
+        return [ProcessState.Rejected, customError]
       })
-    , getValue: jest.fn(() => customError)
     , delete: jest.fn()
     }
     const client = new LongRunningProcessClient(service, 100)
@@ -49,6 +47,6 @@ describe('LongRunningProcessClient', () => {
     const err = await getErrorPromise(client.call('foo'))
 
     expect(err).toBe(customError)
-    expect(service.getState).toBeCalledTimes(6)
+    expect(service.get).toBeCalledTimes(6)
   })
 })

@@ -6,9 +6,13 @@ export enum ProcessState {
 , Rejected = 'rejected'
 }
 
+export type ProcessDetails<Result, Error> =
+| [state: ProcessState.Pending]
+| [state: ProcessState.Resolved, result: Result]
+| [state: ProcessState.Rejected, error: Error]
+
 export interface ILongRunningProcessService<Args extends any[], Result, Error> {
   create(...args: Args): Awaitable<string>
-  getState(id: string): Awaitable<Nullable<ProcessState>>
-  getValue(id: string): Awaitable<Nullable<Result | Error>>
+  get(id: string): Awaitable<Nullable<ProcessDetails<Result, Error>>>
   delete(id: string): Awaitable<Nullish>
 }
