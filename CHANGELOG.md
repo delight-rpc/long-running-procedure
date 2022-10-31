@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.3.0](https://git.blackglory.me:2222/BlackGlory/long-running-process/compare/v0.2.0...v0.3.0) (2022-10-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* rewritten
+
+### Features
+
+* rewrite ([d025bc5](https://git.blackglory.me:2222/BlackGlory/long-running-process/commit/d025bc5556e7c7c6c058c7774f75749b036f13ee))
+
 ## [0.2.0](https://git.blackglory.me:2222/BlackGlory/long-running-process/compare/v0.1.7...v0.2.0) (2022-10-30)
 
 
