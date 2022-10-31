@@ -46,10 +46,16 @@ interface ILongRunningProcessServiceStore<Result, Error> {
   delete(id: string): Awaitable<Nullish>
 }
 
-class LongRunningProcessService<Args extends any[], Result, Error> implements ILongRunningProcessService<Args extends any[], Result, Error> {
+class LongRunningProcessService<
+  StoreResult
+, StoreError
+, Args extends any[]
+, Result extends StoreResult
+, Error extends StoreError
+> implements ILongRunningProcessService<Args, Result, Error> {
   constructor(
     process: (...args: Args) => PromiseLike<Result>
-  , store: ILongRunningProcessServiceStore<Result, Error>
+  , store: ILongRunningProcessServiceStore<StoreResult, StoreError>
   )
 }
 ```

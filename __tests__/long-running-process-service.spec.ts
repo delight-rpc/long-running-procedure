@@ -1,14 +1,14 @@
 import { LongRunningProcessService, ILongRunningProcessServiceStore } from '@src/long-running-process-service'
 import { ProcessState, ProcessDetails } from '@src/types'
 import { Deferred, delay } from 'extra-promise'
-import { getErrorPromise } from 'return-style'
+import { Json } from 'justypes'
 
 describe('LongRunningProcessService', () => {
   test(`${ProcessState.Pending}, ${ProcessState.Resolved}`, async () => {
-    const deferred = new Deferred<any>()
+    const deferred = new Deferred<string>()
     const process = jest.fn(() => deferred)
-    const map = new Map<string, ProcessDetails<string, Error>>()
-    const store: ILongRunningProcessServiceStore<string, Error> = {
+    const map = new Map<string, ProcessDetails<Json, Error>>()
+    const store: ILongRunningProcessServiceStore<Json, Error> = {
       get: jest.fn(id => map.get(id))
     , set: jest.fn((id, processDetails) => {
         map.set(id, processDetails)
@@ -35,10 +35,10 @@ describe('LongRunningProcessService', () => {
   })
 
   test(`${ProcessState.Pending}, ${ProcessState.Rejected}`, async () => {
-    const deferred = new Deferred<any>()
+    const deferred = new Deferred<string>()
     const process = jest.fn(() => deferred)
-    const map = new Map<string, ProcessDetails<string, Error>>()
-    const store: ILongRunningProcessServiceStore<string, Error> = {
+    const map = new Map<string, ProcessDetails<Json, Error>>()
+    const store: ILongRunningProcessServiceStore<Json, Error> = {
       get: jest.fn(id => map.get(id))
     , set: jest.fn((id, processDetails) => {
         map.set(id, processDetails)

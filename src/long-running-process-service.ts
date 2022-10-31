@@ -19,10 +19,20 @@ const schema: IFiniteStateMachineSchema<ProcessState, 'resolve' | 'reject'> = {
 , rejected: {}
 }
 
-export class LongRunningProcessService<Args extends any[], Result, Error> implements ILongRunningProcessService<Args, Result, Error> {
+export class LongRunningProcessService<
+  StoreResult
+, StoreError
+, Args extends any[]
+, Result extends StoreResult
+, Error extends StoreError
+> implements ILongRunningProcessService<
+  Args
+, Result
+, Error
+> {
   constructor(
     private process: (...args: Args) => PromiseLike<Result>
-  , private store: ILongRunningProcessServiceStore<Result, Error>
+  , private store: ILongRunningProcessServiceStore<StoreResult, StoreError>
   ) {}
 
   async create(...args: Args): Promise<string> {
@@ -49,7 +59,8 @@ export class LongRunningProcessService<Args extends any[], Result, Error> implem
   }
 
   async get(id: string): Promise<Nullable<ProcessDetails<Result, Error>>> {
-    return await this.store.get(id)
+    const processDetails = await this.store.get(id)
+    return processDetails as Nullable<ProcessDetails<Result, Error>>
   }
 
   async delete(id: string): Promise<Nullish> {
