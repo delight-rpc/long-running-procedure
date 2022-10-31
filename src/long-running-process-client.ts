@@ -22,18 +22,12 @@ export class LongRunningProcessClient<Args extends any[], Result, Error> {
           break
         }
         case ProcessState.Resolved: {
-          try {
-            return value
-          } finally {
-            await this.service.delete(id)
-          }
+          await this.service.delete(id)
+          return value
         }
         case ProcessState.Rejected: {
-          try {
-            throw value
-          } finally {
-            await this.service.delete(id)
-          }
+          await this.service.delete(id)
+          throw value
         }
       }
     }
