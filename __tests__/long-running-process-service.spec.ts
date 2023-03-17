@@ -1,20 +1,21 @@
-import { LongRunningProcessService, ILongRunningProcessServiceStore } from '@src/long-running-process-service'
-import { ProcessState, ProcessDetails } from '@src/types'
+import { LongRunningProcessService, ILongRunningProcessServiceStore } from '@src/long-running-process-service.js'
+import { ProcessState, ProcessDetails } from '@src/types.js'
 import { Deferred, delay } from 'extra-promise'
-import { Json } from 'justypes'
+import { JSONValue } from 'justypes'
+import { jest } from '@jest/globals'
 
 describe('LongRunningProcessService', () => {
   test(`${ProcessState.Pending}, ${ProcessState.Resolved}`, async () => {
     const deferred = new Deferred<string>()
     const process = jest.fn(() => deferred)
-    const map = new Map<string, ProcessDetails<Json, Error>>()
-    const store: ILongRunningProcessServiceStore<Json, Error> = {
-      get: jest.fn(id => map.get(id))
-    , set: jest.fn((id, processDetails) => {
+    const map = new Map<string, ProcessDetails<JSONValue, Error>>()
+    const store: ILongRunningProcessServiceStore<JSONValue, Error> = {
+      get: jest.fn((id: string) => map.get(id))
+    , set: jest.fn((id: string, processDetails: ProcessDetails<JSONValue, Error>) => {
         map.set(id, processDetails)
         return undefined
       })
-    , delete: jest.fn(id => {
+    , delete: jest.fn((id: string) => {
         map.delete(id)
         return undefined
       })
@@ -37,14 +38,14 @@ describe('LongRunningProcessService', () => {
   test(`${ProcessState.Pending}, ${ProcessState.Rejected}`, async () => {
     const deferred = new Deferred<string>()
     const process = jest.fn(() => deferred)
-    const map = new Map<string, ProcessDetails<Json, Error>>()
-    const store: ILongRunningProcessServiceStore<Json, Error> = {
-      get: jest.fn(id => map.get(id))
-    , set: jest.fn((id, processDetails) => {
+    const map = new Map<string, ProcessDetails<JSONValue, Error>>()
+    const store: ILongRunningProcessServiceStore<JSONValue, Error> = {
+      get: jest.fn((id: string) => map.get(id))
+    , set: jest.fn((id: string, processDetails: ProcessDetails<JSONValue, Error>) => {
         map.set(id, processDetails)
         return undefined
       })
-    , delete: jest.fn(id => {
+    , delete: jest.fn((id: string) => {
         map.delete(id)
         return undefined
       })

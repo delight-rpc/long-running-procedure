@@ -1,7 +1,7 @@
 import { IFiniteStateMachineSchema, transition } from 'extra-fsm'
 import { assert, Awaitable, Nullable, Nullish, isntNullish } from '@blackglory/prelude'
 import { nanoid } from 'nanoid'
-import { ILongRunningProcessService, ProcessState, ProcessDetails } from './types'
+import { ILongRunningProcessService, ProcessState, ProcessDetails } from './types.js'
 import { toResultPromise } from 'return-style'
 
 export interface ILongRunningProcessServiceStore<Result, Error> {

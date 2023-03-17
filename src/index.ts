@@ -1,3 +1,3 @@
-export * from './long-running-process-service'
-export * from './long-running-process-client'
-export * from './types'
+export * from './long-running-process-service.js'
+export * from './long-running-process-client.js'
+export * from './types.js'

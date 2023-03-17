@@ -1,6 +1,6 @@
 import { delay } from 'extra-promise'
 import { assert, isntNullish } from '@blackglory/prelude'
-import { ILongRunningProcessService, ProcessState } from './types'
+import { ILongRunningProcessService, ProcessState } from './types.js'
 
 export class LongRunningProcessClient<Args extends any[], Result, Error> {
   constructor(
