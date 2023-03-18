@@ -1,10 +1,10 @@
 import { delay } from 'extra-promise'
 import { assert, isntNullish } from '@blackglory/prelude'
-import { ILongRunningProcessService, ProcessState } from './types.js'
+import { ILongRunningProcedureService, ProcedureState } from './types.js'
 
-export class LongRunningProcessClient<Args extends any[], Result, Error> {
+export class LongRunningProcedureClient<Args extends any[], Result, Error> {
   constructor(
-    private service: ILongRunningProcessService<Args, Result, Error>
+    private service: ILongRunningProcedureService<Args, Result, Error>
   , private pollingInterval: number
   ) {}
 
@@ -17,15 +17,15 @@ export class LongRunningProcessClient<Args extends any[], Result, Error> {
 
       const [state, value] = response
       switch (state) {
-        case ProcessState.Pending: {
+        case ProcedureState.Pending: {
           await delay(this.pollingInterval)
           break
         }
-        case ProcessState.Resolved: {
+        case ProcedureState.Resolved: {
           await this.service.delete(id)
           return value
         }
-        case ProcessState.Rejected: {
+        case ProcedureState.Rejected: {
           await this.service.delete(id)
           throw value
         }

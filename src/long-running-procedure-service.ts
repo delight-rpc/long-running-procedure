@@ -1,56 +1,56 @@
 import { IFiniteStateMachineSchema, transition } from 'extra-fsm'
 import { assert, Awaitable, Nullable, Nullish, isntNullish } from '@blackglory/prelude'
 import { nanoid } from 'nanoid'
-import { ILongRunningProcessService, ProcessState, ProcessDetails } from './types.js'
+import { ILongRunningProcedureService, ProcedureState, ProcedureDetails } from './types.js'
 import { toResultPromise } from 'return-style'
 
-export interface ILongRunningProcessServiceStore<Result, Error> {
-  set(id: string, value: ProcessDetails<Result, Error>): Awaitable<Nullish>
-  get(id: string): Awaitable<Nullable<ProcessDetails<Result, Error>>>
+export interface ILongRunningProcedureServiceStore<Result, Error> {
+  set(id: string, value: ProcedureDetails<Result, Error>): Awaitable<Nullish>
+  get(id: string): Awaitable<Nullable<ProcedureDetails<Result, Error>>>
   delete(id: string): Awaitable<Nullish>
 }
 
-const schema: IFiniteStateMachineSchema<ProcessState, 'resolve' | 'reject'> = {
+const schema: IFiniteStateMachineSchema<ProcedureState, 'resolve' | 'reject'> = {
   pending: {
-    resolve: ProcessState.Resolved
-  , reject: ProcessState.Rejected
+    resolve: ProcedureState.Resolved
+  , reject: ProcedureState.Rejected
   }
 , resolved: {}
 , rejected: {}
 }
 
-export class LongRunningProcessService<
+export class LongRunningProcedureService<
   StoreResult
 , StoreError
 , Args extends any[]
 , Result extends StoreResult
 , Error extends StoreError
-> implements ILongRunningProcessService<
+> implements ILongRunningProcedureService<
   Args
 , Result
 , Error
 > {
   constructor(
-    private process: (...args: Args) => PromiseLike<Result>
-  , private store: ILongRunningProcessServiceStore<StoreResult, StoreError>
+    private procedure: (...args: Args) => PromiseLike<Result>
+  , private store: ILongRunningProcedureServiceStore<StoreResult, StoreError>
   ) {}
 
   async create(...args: Args): Promise<string> {
     const id = this.createId()
-    await this.store.set(id, [ProcessState.Pending])
+    await this.store.set(id, [ProcedureState.Pending])
 
     queueMicrotask(async () => {
-      const result = await toResultPromise<Error, Result>(this.process(...args))
+      const result = await toResultPromise<Error, Result>(this.procedure(...args))
 
       const processDetails = await this.get(id)
       assert(isntNullish(processDetails), 'process does not exist')
 
       const [state] = processDetails
       if (result.isOk()) {
-        const newState = transition(schema, state, 'resolve') as ProcessState.Resolved
+        const newState = transition(schema, state, 'resolve') as ProcedureState.Resolved
         await this.store.set(id, [newState, result.unwrap()])
       } else {
-        const newState = transition(schema, state, 'reject') as ProcessState.Rejected
+        const newState = transition(schema, state, 'reject') as ProcedureState.Rejected
         await this.store.set(id, [newState, result.unwrapErr()])
       }
     })
@@ -58,9 +58,9 @@ export class LongRunningProcessService<
     return id
   }
 
-  async get(id: string): Promise<ProcessDetails<Result, Error> | null> {
+  async get(id: string): Promise<ProcedureDetails<Result, Error> | null> {
     const processDetails = await this.store.get(id) ?? null
-    return processDetails as ProcessDetails<Result, Error> | null
+    return processDetails as ProcedureDetails<Result, Error> | null
   }
 
   async delete(id: string): Promise<null> {
@@ -69,8 +69,8 @@ export class LongRunningProcessService<
 
     const [state] = processDetails
     assert(
-      state === ProcessState.Resolved || state === ProcessState.Rejected
-    , `The state of process is not ${ProcessState.Resolved} or ${ProcessState.Rejected}`
+      state === ProcedureState.Resolved || state === ProcedureState.Rejected
+    , `The state of process is not ${ProcedureState.Resolved} or ${ProcedureState.Rejected}`
     )
 
     await this.store.delete(id)

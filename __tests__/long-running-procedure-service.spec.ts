@@ -1,17 +1,17 @@
-import { LongRunningProcessService, ILongRunningProcessServiceStore } from '@src/long-running-process-service.js'
-import { ProcessState, ProcessDetails } from '@src/types.js'
+import { LongRunningProcedureService, ILongRunningProcedureServiceStore } from '@src/long-running-procedure-service.js'
+import { ProcedureState, ProcedureDetails } from '@src/types.js'
 import { Deferred, delay } from 'extra-promise'
 import { JSONValue } from 'justypes'
 import { jest } from '@jest/globals'
 
-describe('LongRunningProcessService', () => {
-  test(`${ProcessState.Pending}, ${ProcessState.Resolved}`, async () => {
+describe('LongRunningProcedureService', () => {
+  test(`${ProcedureState.Pending}, ${ProcedureState.Resolved}`, async () => {
     const deferred = new Deferred<string>()
     const process = jest.fn(() => deferred)
-    const map = new Map<string, ProcessDetails<JSONValue, Error>>()
-    const store: ILongRunningProcessServiceStore<JSONValue, Error> = {
+    const map = new Map<string, ProcedureDetails<JSONValue, Error>>()
+    const store: ILongRunningProcedureServiceStore<JSONValue, Error> = {
       get: jest.fn((id: string) => map.get(id))
-    , set: jest.fn((id: string, processDetails: ProcessDetails<JSONValue, Error>) => {
+    , set: jest.fn((id: string, processDetails: ProcedureDetails<JSONValue, Error>) => {
         map.set(id, processDetails)
         return undefined
       })
@@ -20,7 +20,7 @@ describe('LongRunningProcessService', () => {
         return undefined
       })
     }
-    const service = new LongRunningProcessService(process, store)
+    const service = new LongRunningProcedureService(process, store)
 
     const id = await service.create()
     const result1 = await service.get(id)
@@ -30,18 +30,18 @@ describe('LongRunningProcessService', () => {
     await service.delete(id)
     const result3 = await service.get(id)
 
-    expect(result1).toStrictEqual([ProcessState.Pending])
-    expect(result2).toStrictEqual([ProcessState.Resolved, 'result'])
+    expect(result1).toStrictEqual([ProcedureState.Pending])
+    expect(result2).toStrictEqual([ProcedureState.Resolved, 'result'])
     expect(result3).toBe(null)
   })
 
-  test(`${ProcessState.Pending}, ${ProcessState.Rejected}`, async () => {
+  test(`${ProcedureState.Pending}, ${ProcedureState.Rejected}`, async () => {
     const deferred = new Deferred<string>()
     const process = jest.fn(() => deferred)
-    const map = new Map<string, ProcessDetails<JSONValue, Error>>()
-    const store: ILongRunningProcessServiceStore<JSONValue, Error> = {
+    const map = new Map<string, ProcedureDetails<JSONValue, Error>>()
+    const store: ILongRunningProcedureServiceStore<JSONValue, Error> = {
       get: jest.fn((id: string) => map.get(id))
-    , set: jest.fn((id: string, processDetails: ProcessDetails<JSONValue, Error>) => {
+    , set: jest.fn((id: string, processDetails: ProcedureDetails<JSONValue, Error>) => {
         map.set(id, processDetails)
         return undefined
       })
@@ -50,7 +50,7 @@ describe('LongRunningProcessService', () => {
         return undefined
       })
     }
-    const service = new LongRunningProcessService(process, store)
+    const service = new LongRunningProcedureService(process, store)
 
     const id = await service.create()
     const result1 = await service.get(id)
@@ -60,8 +60,8 @@ describe('LongRunningProcessService', () => {
     await service.delete(id)
     const result3 = await service.get(id)
 
-    expect(result1).toStrictEqual([ProcessState.Pending])
-    expect(result2).toStrictEqual([ProcessState.Rejected, 'error'])
+    expect(result1).toStrictEqual([ProcedureState.Pending])
+    expect(result2).toStrictEqual([ProcedureState.Rejected, 'error'])
     expect(result3).toBe(null)
   })
 })

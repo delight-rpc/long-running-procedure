@@ -1,36 +1,36 @@
-# long-running-process
+# long-running-procedure
 ## Install
 ```sh
-npm install --save @private/long-running-process
+npm install --save @private/long-running-procedure
 # or
-yarn add @private/long-running-process
+yarn add @private/long-running-procedure
 ```
 
 ## API
 ```ts
-enum ProcessState {
+enum ProcedureState {
   Pending = 'pending'
 , Resolved = 'resolved'
 , Rejected = 'rejected'
 }
 
-type ProcessDetails<Result, Error> =
-| [state: ProcessState.Pending]
-| [state: ProcessState.Resolved, result: Result]
-| [state: ProcessState.Rejected, error: Error]
+type ProcedureDetails<Result, Error> =
+| [state: ProcedureState.Pending]
+| [state: ProcedureState.Resolved, result: Result]
+| [state: ProcedureState.Rejected, error: Error]
 
-interface ILongRunningProcessService<Args extends any[], Result, Error> {
+interface ILongRunningProcedureService<Args extends any[], Result, Error> {
   create(...args: Args): Awaitable<string>
-  get(id: string): Awaitable<Nullable<ProcessDetails<Result, Error>>>
+  get(id: string): Awaitable<Nullable<ProcedureDetails<Result, Error>>>
   delete(id: string): Awaitable<Nullish>
 }
 ```
 
-### LongRunningProcessClient
+### LongRunningProcedureClient
 ```ts
-class LongRunningProcessClient<Args extends any[], Result, Error> {
+class LongRunningProcedureClient<Args extends any[], Result, Error> {
   constructor(
-    service: ILongRunningProcessService<Args, Result, Error>
+    service: ILongRunningProcedureService<Args, Result, Error>
   , pollingInterval: number
   )
 
@@ -38,24 +38,24 @@ class LongRunningProcessClient<Args extends any[], Result, Error> {
 }
 ```
 
-### LongRunningProcess
+### LongRunningProcedure
 ```ts
-interface ILongRunningProcessServiceStore<Result, Error> {
-  set(id: string, value: ProcessDetails<Result, Error>): Awaitable<Nullish>
-  get(id: string): Awaitable<Nullable<ProcessDetails<Result, Error>>>
+interface ILongRunningProcedureServiceStore<Result, Error> {
+  set(id: string, value: ProcedureDetails<Result, Error>): Awaitable<Nullish>
+  get(id: string): Awaitable<Nullable<ProcedureDetails<Result, Error>>>
   delete(id: string): Awaitable<Nullish>
 }
 
-class LongRunningProcessService<
+class LongRunningProcedureService<
   StoreResult
 , StoreError
 , Args extends any[]
 , Result extends StoreResult
 , Error extends StoreError
-> implements ILongRunningProcessService<Args, Result, Error> {
+> implements ILongRunningProcedureService<Args, Result, Error> {
   constructor(
-    process: (...args: Args) => PromiseLike<Result>
-  , store: ILongRunningProcessServiceStore<StoreResult, StoreError>
+    procedure: (...args: Args) => PromiseLike<Result>
+  , store: ILongRunningProcedureServiceStore<StoreResult, StoreError>
   )
 }
 ```
