@@ -1,18 +1,26 @@
 import { Awaitable, Nullable, Nullish } from '@blackglory/prelude'
 
-export enum ProcedureState {
-  Pending = 'pending'
-, Resolved = 'resolved'
-, Rejected = 'rejected'
+export enum StoreItemState {
+  Pending
+, Resolved
+, Rejected
 }
 
-export type ProcedureDetails<Result, Error> =
-| [state: ProcedureState.Pending]
-| [state: ProcedureState.Resolved, result: Result]
-| [state: ProcedureState.Rejected, error: Error]
+export interface Store<Result, Error> {
+  set(
+    id: string
+  , value:
+    | [StoreItemState.Pending]
+    | [StoreItemState.Resolved, Result]
+    | [StoreItemState.Rejected, Error]
+  , timeToLive?: number
+  ): Awaitable<Nullish>
 
-export interface ILongRunningProcedureService<Args extends any[], Result, Error> {
-  create(...args: Args): Awaitable<string>
-  get(id: string): Awaitable<Nullable<ProcedureDetails<Result, Error>>>
+  get(id: string): Awaitable<Nullable<
+  | [StoreItemState.Pending]
+  | [StoreItemState.Resolved, Result]
+  | [StoreItemState.Rejected, Error]
+  >>
+
   delete(id: string): Awaitable<Nullish>
 }
