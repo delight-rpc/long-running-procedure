@@ -24,3 +24,7 @@ export interface Store<Result, Error> {
 
   delete(id: string): Awaitable<Nullish>
 }
+
+export interface ILongRunningProcedureCaller<Args extends unknown[], Result> {
+  call(...args: [...args: Args, signal: AbortSignal]): Promise<Result>
+}

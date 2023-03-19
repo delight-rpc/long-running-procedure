@@ -52,28 +52,6 @@ interface ILongRunningProcedure<Args extends any[], Result> {
 class CallNotFound extends CustomError {}
 ```
 
-### LongRunningProcedureCaller
-```ts
-class LongRunningProcedureCaller<Args extends any[], Result> {
-  constructor(
-    procedure: ILongRunningProcedure<Args, Result>
-  , pollingInterval: number
-  )
-
-  /**
-   * 以长连接方式接收长时运行过程的结果, 结果会尽快返回.
-   * 请注意, 在一些信道上维持长连接需要付出成本.
-   */
-  callAndWait(...args: [...args: Args, signal: AbortSignal]): Promise<Result>
-
-  /**
-   * 以轮询方式接收长时运行过程的结果, 这无法尽快返回结果.
-   * 请注意, 视轮询间隔, 可能会造成很多被浪费的请求.
-   */
-  callAndPoll(...args: [...args: Args, signal: AbortSignal]): Promise<Result>
-}
-```
-
 ### LongRunningProcedure
 ```ts
 class LongRunningProcedure<Args extends unknown[], Result, Error>
@@ -91,6 +69,40 @@ implements ILongRunningProcedure<Args, Result> {
       timeout?: number
       timeToLive?: number
     }
+  )
+}
+```
+
+### Caller
+```ts
+interface ILongRunningProcedureCaller<Args extends unknown[], Result> {
+  call(...args: [...args: Args, signal: AbortSignal]): Promise<Result>
+}
+```
+
+#### LongRunningProcedureCaller
+```ts
+/**
+ * 以长连接方式接收长时运行过程的结果, 结果会尽快返回.
+ * 请注意, 在一些信道上维持长连接需要付出成本.
+ */
+class LongRunningProcedureCaller<Args extends unknown[], Result>
+implements ILongRunningProcedureCaller<Args, Result> {
+  constructor(procedure: ILongRunningProcedure<Args, Result>)
+}
+```
+
+#### LongRunningProcedurePollingCaller
+```ts
+/**
+ * 以轮询方式接收长时运行过程的结果, 这无法尽快返回结果.
+ * 请注意, 视轮询间隔, 可能会造成很多被浪费的请求.
+ */
+class LongRunningProcedurePollingCaller<Args extends unknown[], Result>
+implements ILongRunningProcedureCaller<Args, Result> {
+  constructor(
+    procedure: ILongRunningProcedure<Args, Result>
+  , pollingInterval: number
   )
 }
 ```
