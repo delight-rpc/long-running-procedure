@@ -1,6 +1,6 @@
 {
   "name": "@delight-rpc/long-running-procedure",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "",
   "files": [
     "lib"
