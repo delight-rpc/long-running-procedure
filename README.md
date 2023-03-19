@@ -1,9 +1,9 @@
 # long-running-procedure
 ## Install
 ```sh
-npm install --save @private/long-running-procedure
+npm install --save @delight-rpc/long-running-procedure
 # or
-yarn add @private/long-running-procedure
+yarn add @delight-rpc/long-running-procedure
 ```
 
 ## API
