@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.2](https://github.com/delight-rpc/long-running-procedure/compare/v0.5.1...v0.5.2) (2025-06-21)
+
+
+### Bug Fixes
+
+* **build:** path aliases ([fe42501](https://github.com/delight-rpc/long-running-procedure/commit/fe4250119cb669bcb17b5b89eeef012d46e63b65))
+
 ### [0.5.1](https://github.com/delight-rpc/long-running-procedure/compare/v0.5.0...v0.5.1) (2023-06-11)
 
 
