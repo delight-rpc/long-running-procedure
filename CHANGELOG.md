@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.3](https://github.com/delight-rpc/long-running-procedure/compare/v0.5.2...v0.5.3) (2026-02-25)
+
+
+### Bug Fixes
+
+* remove `signal.throwIfAborted()` ([5c1980f](https://github.com/delight-rpc/long-running-procedure/commit/5c1980f823f9280dff58d50a9ec4f07098d72793))
+
 ### [0.5.2](https://github.com/delight-rpc/long-running-procedure/compare/v0.5.1...v0.5.2) (2025-06-21)
 
 
