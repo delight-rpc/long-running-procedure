@@ -1,6 +1,7 @@
 import { delay } from 'extra-promise'
 import { ILongRunningProcedure, CallState } from './contract.js'
 import { ILongRunningProcedureCaller } from './types.js'
+import { throwIfAborted } from './utils.js'
 
 /**
  * 以轮询方式接收长时运行过程的结果, 这无法尽快返回结果.
@@ -16,7 +17,7 @@ implements ILongRunningProcedureCaller<Args, Result> {
   async call(...args: [...args: Args, signal: AbortSignal]): Promise<Result> {
     const realArgs = args.slice(0, args.length - 1) as Args
     const signal = args[args.length - 1] as AbortSignal
-    signal.throwIfAborted()
+    throwIfAborted(signal)
 
     const id = await this.procedure.call(realArgs)
     try {
