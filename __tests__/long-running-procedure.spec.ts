@@ -1,9 +1,9 @@
+import { describe, test, expect, vi } from 'vitest'
 import { CallNotFound, CallState } from '@src/contract.js'
 import { LongRunningProcedure } from '@src/long-running-procedure/index.js'
 import { Store, StoreItemState } from '@src/types.js'
 import { Deferred, delay, StatefulPromise, StatefulPromiseState } from 'extra-promise'
 import { Nullable } from '@blackglory/prelude'
-import { jest } from '@jest/globals'
 import { getErrorPromise } from 'return-style'
 import { AbortError, withAbortSignal } from 'extra-abort'
 
@@ -11,7 +11,7 @@ describe('LongRunningProcedure', () => {
   describe('call', () => {
     test('Pending => Resolved', async () => {
       const deferred = new Deferred<void>()
-      const fn = jest.fn(async (text: string, signal: AbortSignal) => {
+      const fn = vi.fn(async (text: string, signal: AbortSignal) => {
         await deferred
         return text
       })
@@ -45,7 +45,7 @@ describe('LongRunningProcedure', () => {
 
     test('Pending => Rejected', async () => {
       const deferred = new Deferred<void>()
-      const fn = jest.fn(async (text: string, signal: AbortSignal) => {
+      const fn = vi.fn(async (text: string, signal: AbortSignal) => {
         await deferred
         return text
       })
@@ -81,7 +81,7 @@ describe('LongRunningProcedure', () => {
   describe('abort', () => {
     test('pending', async () => {
       const deferred = new Deferred<string>()
-      const fn = jest.fn(async (signal: AbortSignal) => {
+      const fn = vi.fn(async (signal: AbortSignal) => {
         return await withAbortSignal(signal, () => deferred)
       })
       const procedure = new LongRunningProcedure(fn)
@@ -99,7 +99,7 @@ describe('LongRunningProcedure', () => {
 
     test('resolved', async () => {
       const deferred = new Deferred<string>()
-      const fn = jest.fn(async (signal: AbortSignal) => {
+      const fn = vi.fn(async (signal: AbortSignal) => {
         return await withAbortSignal(signal, () => deferred)
       })
       const procedure = new LongRunningProcedure(fn)
@@ -117,7 +117,7 @@ describe('LongRunningProcedure', () => {
 
     test('rejected', async () => {
       const deferred = new Deferred<void>()
-      const fn = jest.fn(async (signal: AbortSignal) => {
+      const fn = vi.fn(async (signal: AbortSignal) => {
         return await withAbortSignal(signal, () => deferred)
       })
       const procedure = new LongRunningProcedure(fn)
@@ -135,7 +135,7 @@ describe('LongRunningProcedure', () => {
 
     test('aborted', async () => {
       const deferred = new Deferred<void>()
-      const fn = jest.fn(async (signal: AbortSignal) => {
+      const fn = vi.fn(async (signal: AbortSignal) => {
         return await withAbortSignal(signal, () => deferred)
       })
       const procedure = new LongRunningProcedure(fn)
@@ -155,7 +155,7 @@ describe('LongRunningProcedure', () => {
   describe('getState', () => {
     test('call does not exist', async () => {
       const deferred = new Deferred<void>()
-      const fn = jest.fn(async (signal: AbortSignal) => await deferred)
+      const fn = vi.fn(async (signal: AbortSignal) => await deferred)
       const procedure = new LongRunningProcedure(fn)
       const id = 'id'
 
@@ -167,7 +167,7 @@ describe('LongRunningProcedure', () => {
     describe('call exists', () => {
       test('pending', async () => {
         const deferred = new Deferred<void>()
-        const fn = jest.fn(async (signal: AbortSignal) => await deferred)
+        const fn = vi.fn(async (signal: AbortSignal) => await deferred)
         const procedure = new LongRunningProcedure(fn)
 
         const id = await procedure.call([])
@@ -182,7 +182,7 @@ describe('LongRunningProcedure', () => {
 
       test('resolved', async () => {
         const deferred = new Deferred<void>()
-        const fn = jest.fn(async (signal: AbortSignal) => await deferred)
+        const fn = vi.fn(async (signal: AbortSignal) => await deferred)
         const procedure = new LongRunningProcedure(fn)
 
         const id = await procedure.call([])
@@ -195,7 +195,7 @@ describe('LongRunningProcedure', () => {
 
       test('rejected', async () => {
         const deferred = new Deferred<void>()
-        const fn = jest.fn(async (signal: AbortSignal) => await deferred)
+        const fn = vi.fn(async (signal: AbortSignal) => await deferred)
         const procedure = new LongRunningProcedure(fn)
 
         const id = await procedure.call([])
@@ -208,7 +208,7 @@ describe('LongRunningProcedure', () => {
 
       test('aborted', async () => {
         const deferred = new Deferred<void>()
-        const fn = jest.fn(async (signal: AbortSignal) => {
+        const fn = vi.fn(async (signal: AbortSignal) => {
           await withAbortSignal(signal, () => deferred)
         })
         const procedure = new LongRunningProcedure(fn)
@@ -230,7 +230,7 @@ describe('LongRunningProcedure', () => {
   describe('getResult', () => {
     test('call does not exist', async () => {
       const deferred = new Deferred<string>()
-      const fn = jest.fn(async (signal: AbortSignal) => await deferred)
+      const fn = vi.fn(async (signal: AbortSignal) => await deferred)
       const procedure = new LongRunningProcedure(fn)
       const id = 'id'
 
@@ -242,7 +242,7 @@ describe('LongRunningProcedure', () => {
     describe('call exists', () => {
       test('pending', async () => {
         const deferred = new Deferred<void>()
-        const fn = jest.fn(async (signal: AbortSignal) => await deferred)
+        const fn = vi.fn(async (signal: AbortSignal) => await deferred)
         const procedure = new LongRunningProcedure(fn)
 
         const id = await procedure.call([])
@@ -261,7 +261,7 @@ describe('LongRunningProcedure', () => {
 
       test('resolved', async () => {
         const deferred = new Deferred<string>()
-        const fn = jest.fn(async (signal: AbortSignal) => await deferred)
+        const fn = vi.fn(async (signal: AbortSignal) => await deferred)
         const procedure = new LongRunningProcedure(fn)
 
         const id = await procedure.call([])
@@ -274,7 +274,7 @@ describe('LongRunningProcedure', () => {
 
       test('rejected', async () => {
         const deferred = new Deferred<void>()
-        const fn = jest.fn(async (signal: AbortSignal) => await deferred)
+        const fn = vi.fn(async (signal: AbortSignal) => await deferred)
         const procedure = new LongRunningProcedure(fn)
 
         const id = await procedure.call([])
@@ -287,7 +287,7 @@ describe('LongRunningProcedure', () => {
 
       test('aborted', async () => {
         const deferred = new Deferred<void>()
-        const fn = jest.fn(async (signal: AbortSignal) => {
+        const fn = vi.fn(async (signal: AbortSignal) => {
           await withAbortSignal(signal, () => deferred)
         })
         const procedure = new LongRunningProcedure(fn)
@@ -309,7 +309,7 @@ describe('LongRunningProcedure', () => {
   describe('remove', () => {
     test('call does not exist', async () => {
       const deferred = new Deferred<string>()
-      const fn = jest.fn(async (signal: AbortSignal) => await deferred)
+      const fn = vi.fn(async (signal: AbortSignal) => await deferred)
       const procedure = new LongRunningProcedure(fn)
       const id = 'id'
 
@@ -319,7 +319,7 @@ describe('LongRunningProcedure', () => {
     describe('call exists', () => {
       test('pending', async () => {
         const deferred = new Deferred<void>()
-        const fn = jest.fn(async (signal: AbortSignal) => await deferred)
+        const fn = vi.fn(async (signal: AbortSignal) => await deferred)
         const procedure = new LongRunningProcedure(fn)
 
         const id = await procedure.call([])
@@ -336,7 +336,7 @@ describe('LongRunningProcedure', () => {
 
       test('resolved', async () => {
         const deferred = new Deferred<string>()
-        const fn = jest.fn(async (signal: AbortSignal) => await deferred)
+        const fn = vi.fn(async (signal: AbortSignal) => await deferred)
         const procedure = new LongRunningProcedure(fn)
 
         const id = await procedure.call([])
@@ -350,7 +350,7 @@ describe('LongRunningProcedure', () => {
 
       test('rejected', async () => {
         const deferred = new Deferred<void>()
-        const fn = jest.fn(async (signal: AbortSignal) => await deferred)
+        const fn = vi.fn(async (signal: AbortSignal) => await deferred)
         const procedure = new LongRunningProcedure(fn)
 
         const id = await procedure.call([])
@@ -364,7 +364,7 @@ describe('LongRunningProcedure', () => {
 
       test('aborted', async () => {
         const deferred = new Deferred<void>()
-        const fn = jest.fn(async (signal: AbortSignal) => {
+        const fn = vi.fn(async (signal: AbortSignal) => {
           await withAbortSignal(signal, () => deferred)
         })
         const procedure = new LongRunningProcedure(fn)
@@ -390,7 +390,7 @@ function createMockedStore() {
   const map = new Map<string, unknown>()
 
   return {
-    get: jest.fn((id: string) => {
+    get: vi.fn((id: string) => {
       const result = map.get(id)
       return result as Nullable<
       | [StoreItemState.Pending]
@@ -398,7 +398,7 @@ function createMockedStore() {
       | [StoreItemState.Rejected, Error]
       >
     })
-  , set: jest.fn((
+  , set: vi.fn((
       id: string
     , item:
       | [StoreItemState.Pending]
@@ -409,7 +409,7 @@ function createMockedStore() {
 
       return undefined
     })
-  , delete: jest.fn((id: string) => {
+  , delete: vi.fn((id: string) => {
       map.delete(id)
 
       return undefined

@@ -13,7 +13,7 @@ enum CallState {
 , Settled
 }
 
-interface ILongRunningProcedure<Args extends any[], Result> {
+interface ILongRunningProcedure<Args extends unknown[], Result> {
   /**
    * 调用此过程.
    * 

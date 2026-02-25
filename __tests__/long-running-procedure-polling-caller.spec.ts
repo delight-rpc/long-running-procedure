@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest'
 import { LongRunningProcedurePollingCaller } from '@src/long-running-procedure-polling-caller.js'
 import { getErrorPromise } from 'return-style'
 import { AbortController, AbortError, withAbortSignal } from 'extra-abort'

@@ -6,7 +6,7 @@ export enum CallState {
 , Settled
 }
 
-export interface ILongRunningProcedure<Args extends any[], Result> {
+export interface ILongRunningProcedure<Args extends unknown[], Result> {
   /**
    * 调用此过程.
    * 

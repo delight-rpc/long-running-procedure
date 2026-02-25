@@ -1,6 +1,5 @@
 import { ILongRunningProcedure } from './contract.js'
 import { ILongRunningProcedureCaller } from './types.js'
-import { throwIfAborted } from './utils.js'
 
 /**
  * 以长连接方式接收长时运行过程的结果, 结果会尽快返回.
@@ -13,7 +12,7 @@ implements ILongRunningProcedureCaller<Args, Result> {
   async call(...args: [...args: Args, signal: AbortSignal]): Promise<Result> {
     const realArgs = args.slice(0, args.length - 1) as Args
     const signal = args[args.length - 1] as AbortSignal
-    throwIfAborted(signal)
+    signal.throwIfAborted()
 
     const id = await this.procedure.call(realArgs)
     try {

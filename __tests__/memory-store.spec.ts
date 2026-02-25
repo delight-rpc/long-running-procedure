@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest'
 import { isNullish } from '@blackglory/prelude'
 import { StoreItemState } from '@src/types.js'
 import { MemoryStore } from '@src/memory-store.js'
