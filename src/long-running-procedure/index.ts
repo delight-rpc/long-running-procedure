@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid'
 import { ILongRunningProcedure, CallState, CallNotFound } from '@src/contract.js'
-import { toResultPromise } from 'return-style'
+import { toResultAsync } from 'return-style'
 import { AbortController, AbortError } from 'extra-abort'
 import { EventHub, Event } from './event-hub.js'
 import { setTimeout } from 'extra-timers'
@@ -60,9 +60,9 @@ implements ILongRunningProcedure<Args, Result> {
     }
 
     go(async () => {
-      const result = await toResultPromise<Error, Result>(
-        this.procedure(...args, controller.signal)
-      )
+      const result = await toResultAsync<Error, Result>(() => {
+        return this.procedure(...args, controller.signal)
+      })
 
       timeoutDestructor.execute()
 
