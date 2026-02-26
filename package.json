@@ -56,8 +56,10 @@
     "@blackglory/structures": "^0.14.12",
     "@blackglory/wait-for": "^0.8.5",
     "extra-abort": "^0.4.1",
+    "extra-defer": "^0.3.1",
     "extra-promise": "^7.1.1",
     "extra-timers": "^0.3.0",
+    "extra-utils": "^5.21.0",
     "nanoid": "5.1.6",
     "return-style": "^4.0.0"
   }

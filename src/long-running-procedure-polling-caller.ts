@@ -34,11 +34,10 @@ implements ILongRunningProcedureCaller<Args, Result> {
         switch (state) {
           case CallState.Pending: {
             await delay(this.pollingInterval)
+
             break
           }
-          case CallState.Settled: {
-            return await this.procedure.getResult(id)
-          }
+          case CallState.Settled: return await this.procedure.getResult(id)
         }
       }
     } finally {

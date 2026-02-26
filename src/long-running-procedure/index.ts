@@ -1,11 +1,13 @@
 import { nanoid } from 'nanoid'
 import { ILongRunningProcedure, CallState, CallNotFound } from '@src/contract.js'
 import { toResultPromise } from 'return-style'
-import { AbortController } from 'extra-abort'
+import { AbortController, AbortError } from 'extra-abort'
 import { EventHub, Event } from './event-hub.js'
 import { setTimeout } from 'extra-timers'
 import { Store, StoreItemState } from '@src/types.js'
 import { MemoryStore } from '@src/memory-store.js'
+import { SyncDestructor } from 'extra-defer'
+import { assert, go, pass } from '@blackglory/prelude'
 
 export class LongRunningProcedure<Args extends unknown[], Result, Error>
 implements ILongRunningProcedure<Args, Result> {
@@ -39,15 +41,30 @@ implements ILongRunningProcedure<Args, Result> {
   }
 
   async call(args: Args): Promise<string> {
+    const abortControllerDestructor = new SyncDestructor()
+    const timeoutDestructor = new SyncDestructor()
     const id = this.createId()
+
     const controller = new AbortController()
+    abortControllerDestructor.defer(() => controller.abort())
+
     this.idToAbortController.set(id, controller)
+    abortControllerDestructor.defer(() => this.idToAbortController.delete(id))
+
+    this.eventHub.register(id)
     await this.store.set(id, [StoreItemState.Pending], this.timeout)
 
-    queueMicrotask(async () => {
+    if (this.timeout) {
+      const cancelTimeout = setTimeout(this.timeout, () => controller.abort())
+      timeoutDestructor.defer(cancelTimeout)
+    }
+
+    go(async () => {
       const result = await toResultPromise<Error, Result>(
         this.procedure(...args, controller.signal)
       )
+
+      timeoutDestructor.execute()
 
       const item = await this.store.get(id)
       if (item) {
@@ -71,7 +88,11 @@ implements ILongRunningProcedure<Args, Result> {
         }
 
         this.eventHub.emit(id, Event.Settled)
+      } else {
+        await this.remove(id)
       }
+
+      abortControllerDestructor.execute()
     })
 
     return id
@@ -87,13 +108,14 @@ implements ILongRunningProcedure<Args, Result> {
     const item = await this.store.get(id)
     if (item) {
       const [state] = item
+
       switch (state) {
         case StoreItemState.Pending: return CallState.Pending
         case StoreItemState.Resolved:
-        case StoreItemState.Rejected:
+        case StoreItemState.Rejected: {
           return CallState.Settled
-        default:
-          throw new Error(`Unknown store state ${state}`)
+        }
+        default: throw new Error(`Unknown store state ${state}`)
       }
     } else {
       throw new CallNotFound()
@@ -102,16 +124,30 @@ implements ILongRunningProcedure<Args, Result> {
 
   async getResult(id: string): Promise<Result> {
     const item = await this.store.get(id)
+
     if (item) {
       const [state, value] = item
+
       switch (state) {
         case StoreItemState.Pending: {
-          const controller = this.idToAbortController.get(id)!
-          await this.eventHub.waitFor(id, Event.Settled, controller.signal)
+          const controller = this.idToAbortController.get(id)
+          assert(controller)
+
+          try {
+            await this.eventHub.waitFor(id, Event.Settled, controller.signal)
+          } catch (e) {
+            if (e instanceof AbortError) {
+              pass()
+            } else {
+              throw e
+            }
+          }
+
           return await this.getResult(id)
         }
         case StoreItemState.Resolved: return value
         case StoreItemState.Rejected: throw value
+        default: throw new Error(`Unknown store state ${state}`)
       }
     } else {
       throw new CallNotFound()
@@ -123,17 +159,20 @@ implements ILongRunningProcedure<Args, Result> {
 
     if (item) {
       const [state] = item
+
       switch (state) {
         case StoreItemState.Pending: throw new Error('The call is still pending')
         case StoreItemState.Resolved:
         case StoreItemState.Rejected: {
-          this.eventHub.emit(id, Event.Removed)
-          this.eventHub.removeAllListeners(id)
-          this.idToAbortController.delete(id)
           await this.store.delete(id)
+
+          break
         }
+        default: throw new Error(`Unknown store state ${state}`)
       }
     }
+
+    if (this.eventHub.has(id)) this.eventHub.unregister(id)
 
     return null
   }

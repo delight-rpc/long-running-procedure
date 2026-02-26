@@ -1,5 +1,7 @@
+import { assert } from '@blackglory/prelude'
 import { Emitter } from '@blackglory/structures'
 import { waitForEmitter } from '@blackglory/wait-for'
+import { enumValues } from 'extra-utils'
 
 export enum Event {
   Settled
@@ -14,16 +16,35 @@ type EventToArgs = {
 export class EventHub {
   private idToEmitter: Map<string, Emitter<EventToArgs>> = new Map()
 
+  has(id: string): boolean {
+    return this.idToEmitter.has(id)
+  }
+
+  register(id: string): void {
+    assert(!this.idToEmitter.has(id), 'The emitter already exists')
+
+    this.idToEmitter.set(id, new Emitter())
+  }
+
+  unregister(id: string): void {
+    const emitter = this.idToEmitter.get(id)
+    assert(emitter, 'The emitter does not exists')
+
+    for (const event of enumValues(Event)) {
+      emitter.removeAllListeners(event)
+    }
+
+    this.idToEmitter.delete(id)
+  }
+
   async waitFor(
     id: string
   , event: keyof EventToArgs
   , abortSignal?: AbortSignal
   ): Promise<void> {
-    if (!this.idToEmitter.has(id)) {
-      this.idToEmitter.set(id, new Emitter())
-    }
+    const emitter = this.idToEmitter.get(id)
+    assert(emitter, 'The emitter does not exist')
 
-    const emitter = this.idToEmitter.get(id)!
     await waitForEmitter(emitter, event, abortSignal)
   }
 
@@ -32,11 +53,9 @@ export class EventHub {
   , event: T
   , listener: (...args: EventToArgs[T]) => void
   ): () => void {
-    if (!this.idToEmitter.has(id)) {
-      this.idToEmitter.set(id, new Emitter())
-    }
+    const emitter = this.idToEmitter.get(id)
+    assert(emitter, 'The emitter does not exist')
 
-    const emitter = this.idToEmitter.get(id)!
     return emitter.on(event, listener)
   }
 
@@ -45,11 +64,9 @@ export class EventHub {
   , event: T
   , listener: (...args: EventToArgs[T]) => void
   ): () => void {
-    if (!this.idToEmitter.has(id)) {
-      this.idToEmitter.set(id, new Emitter())
-    }
+    const emitter = this.idToEmitter.get(id)
+    assert(emitter, 'The emitter does not exist')
 
-    const emitter = this.idToEmitter.get(id)!
     return emitter.once(event, listener)
   }
 
@@ -58,13 +75,9 @@ export class EventHub {
   , event: T
   , ...args: EventToArgs[T]
   ): void {
-    this.idToEmitter.get(id)?.emit(event, ...args)
-  }
-
-  removeAllListeners(id: string): void {
     const emitter = this.idToEmitter.get(id)
-    if (emitter) {
-      emitter.removeAllListeners(Event.Settled)
-    }
+    assert(emitter, 'The emitter does not exist')
+
+    emitter.emit(event, ...args)
   }
 }
