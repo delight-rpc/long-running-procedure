@@ -7,7 +7,7 @@ import { setTimeout } from 'extra-timers'
 import { Store, StoreItemState } from '@src/types.js'
 import { MemoryStore } from '@src/memory-store.js'
 import { SyncDestructor } from 'extra-defer'
-import { assert, go } from '@blackglory/prelude'
+import { go } from '@blackglory/prelude'
 import { waitForAllMacrotasksProcessed } from '@blackglory/wait-for'
 
 export class LongRunningProcedure<Args extends unknown[], Result, Error>
@@ -83,12 +83,16 @@ implements ILongRunningProcedure<Args, Result> {
           )
         }
 
-        if (this.timeToLive) {
-          const cancelTimeout = setTimeout(this.timeToLive, () => this.remove(id))
-          this.eventHub.once(id, Event.Removed, cancelTimeout)
-        }
+        // 如果`store.set()`调用已经设置了状态, 但返回很慢,
+        // 可能出现因调用了`remove()`导致任务已被删除的情况.
+        if (this.eventHub.has(id)) {
+          if (this.timeToLive) {
+            const cancelTimeout = setTimeout(this.timeToLive, () => this.remove(id))
+            this.eventHub.once(id, Event.Removed, cancelTimeout)
+          }
 
-        this.eventHub.emit(id, Event.Settled)
+          this.eventHub.emit(id, Event.Settled)
+        }
       } else {
         await this.remove(id)
       }
@@ -113,9 +117,7 @@ implements ILongRunningProcedure<Args, Result> {
       switch (state) {
         case StoreItemState.Pending: return CallState.Pending
         case StoreItemState.Resolved:
-        case StoreItemState.Rejected: {
-          return CallState.Settled
-        }
+        case StoreItemState.Rejected: return CallState.Settled
         default: throw new Error(`Unknown store state ${state}`)
       }
     } else {
@@ -131,17 +133,18 @@ implements ILongRunningProcedure<Args, Result> {
 
       switch (state) {
         case StoreItemState.Pending: {
+          // 如果`store.get()`返回很慢, 可能出现任务已经被删除的情况.
           const controller = this.idToAbortController.get(id)
-          assert(controller)
-
-          try {
-            await this.eventHub.waitFor(id, Event.Settled, controller.signal)
-          } catch (e) {
-            if (e instanceof AbortError) {
-              // 防止在`store.get()`是同步函数时占用事件循环.
-              await waitForAllMacrotasksProcessed()
-            } else {
-              throw e
+          if (controller && this.eventHub.has(id)) {
+            try {
+              await this.eventHub.waitFor(id, Event.Settled, controller.signal)
+            } catch (e) {
+              if (e instanceof AbortError) {
+                // 防止在`store.get()`是同步函数时占用事件循环.
+                await waitForAllMacrotasksProcessed()
+              } else {
+                throw e
+              }
             }
           }
 
@@ -168,13 +171,18 @@ implements ILongRunningProcedure<Args, Result> {
         case StoreItemState.Rejected: {
           await this.store.delete(id)
 
+          // 如果`store.get()`或`store.delete()`返回很慢,
+          // 在并发调用`remove()`时, 可能出现任务已经被删除的情况.
+          if (this.eventHub.has(id)) {
+            this.eventHub.emit(id, Event.Removed)
+            this.eventHub.unregister(id)
+          }
+
           break
         }
         default: throw new Error(`Unknown store state ${state}`)
       }
     }
-
-    if (this.eventHub.has(id)) this.eventHub.unregister(id)
 
     return null
   }
