@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.2](https://github.com/delight-rpc/long-running-procedure/compare/v0.6.1...v0.6.2) (2026-02-27)
+
+
+### Bug Fixes
+
+* **long-running-procedure:** possible race conditions ([0f46eb4](https://github.com/delight-rpc/long-running-procedure/commit/0f46eb41da60fd1c2a29a89a5af06416a6e56a62))
+
 ### [0.6.1](https://github.com/delight-rpc/long-running-procedure/compare/v0.6.0...v0.6.1) (2026-02-27)
 
 
