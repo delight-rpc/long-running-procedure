@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.1](https://github.com/delight-rpc/long-running-procedure/compare/v0.6.0...v0.6.1) (2026-02-27)
+
+
+### Bug Fixes
+
+* **long-running-procedure:** an edge case related to sync `store.get()` ([0433aff](https://github.com/delight-rpc/long-running-procedure/commit/0433aff2f5d3cd2c1aa47fdf67b5873b5ebbf2f7))
+* **long-running-procedure:** memory leak ([87e2df9](https://github.com/delight-rpc/long-running-procedure/commit/87e2df9f536743042f8d6abbb777f4ee0d430c90))
+
 ## [0.6.0](https://github.com/delight-rpc/long-running-procedure/compare/v0.5.3...v0.6.0) (2026-02-25)
 
 
