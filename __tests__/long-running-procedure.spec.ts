@@ -6,18 +6,19 @@ import { Deferred, delay, StatefulPromise, StatefulPromiseState } from 'extra-pr
 import { Nullable } from '@blackglory/prelude'
 import { getErrorPromise } from 'return-style'
 import { AbortError, withAbortSignal } from 'extra-abort'
+import { waitForAllMacrotasksProcessed, waitForTimeout } from '@blackglory/wait-for'
 
 describe('LongRunningProcedure', () => {
   describe('call', () => {
-    test('Pending => Resolved', async () => {
+    test('resolved', async () => {
       const deferred = new Deferred<void>()
       const fn = vi.fn(async (text: string, signal: AbortSignal) => {
         await deferred
         return text
       })
       const store = createMockedStore()
-      const timeout = 1000
-      const timeToLive = 2000
+      const timeout = 500
+      const timeToLive = 1000
       const procedure = new LongRunningProcedure(fn, {
         store
       , timeout
@@ -27,7 +28,7 @@ describe('LongRunningProcedure', () => {
       const id = await procedure.call(['result'])
       const state1 = await procedure.getState(id)
       deferred.resolve()
-      await runAllMicrotasks()
+      await waitForAllMacrotasksProcessed()
       const state2 = await procedure.getState(id)
       const result = await procedure.getResult(id)
 
@@ -43,15 +44,15 @@ describe('LongRunningProcedure', () => {
       expect(store.delete).not.toBeCalled()
     })
 
-    test('Pending => Rejected', async () => {
+    test('rejected', async () => {
       const deferred = new Deferred<void>()
       const fn = vi.fn(async (text: string, signal: AbortSignal) => {
         await deferred
         return text
       })
       const store = createMockedStore()
-      const timeout = 1000
-      const timeToLive = 2000
+      const timeout = 500
+      const timeToLive = 1000
       const procedure = new LongRunningProcedure(fn, {
         store
       , timeout
@@ -61,7 +62,7 @@ describe('LongRunningProcedure', () => {
       const id = await procedure.call(['result'])
       const state1 = await procedure.getState(id)
       deferred.reject('error')
-      await runAllMicrotasks()
+      await waitForAllMacrotasksProcessed()
       const state2 = await procedure.getState(id)
       const err = await getErrorPromise(procedure.getResult(id))
 
@@ -76,79 +77,156 @@ describe('LongRunningProcedure', () => {
       expect(store.set).nthCalledWith(2, id, [StoreItemState.Rejected, 'error'], timeToLive)
       expect(store.delete).not.toBeCalled()
     })
+
+    test('timeout', async () => {
+      const fn = vi.fn(async (signal: AbortSignal) => {
+        while (true) {
+          signal.throwIfAborted()
+
+          await delay(100)
+        }
+      })
+      const store = createMockedStore()
+      const timeout = 500
+      const timeToLive = 1000
+      const procedure = new LongRunningProcedure(fn, {
+        store
+      , timeout
+      , timeToLive
+      })
+
+      const id = await procedure.call([])
+      const state1 = await procedure.getState(id)
+      const err = await getErrorPromise(procedure.getResult(id))
+      const state2 = await procedure.getState(id)
+
+      expect(state1).toBe(CallState.Pending)
+      expect(state2).toBe(CallState.Settled)
+      expect(err).toBeInstanceOf(AbortError)
+      expect(fn).toBeCalledTimes(1)
+      expect(fn).toBeCalledWith(expect.any(AbortSignal))
+      expect(store.set).toBeCalledTimes(2)
+      expect(store.set).nthCalledWith(1, id, [StoreItemState.Pending], timeout)
+      expect(store.set).nthCalledWith(2, id, [StoreItemState.Rejected, expect.any(AbortError)], timeToLive)
+      expect(store.delete).not.toBeCalled()
+    })
+
+    test('timeToLive', async () => {
+      const result = 'result'
+      const fn = vi.fn(async () => result)
+      const store = createMockedStore()
+      const timeout = 500
+      const timeToLive = 1000
+      const procedure = new LongRunningProcedure(fn, {
+        store
+      , timeout
+      , timeToLive
+      })
+
+      const id = await procedure.call([])
+      const state1 = await procedure.getState(id)
+      await procedure.getResult(id)
+      const state2 = await procedure.getState(id)
+      await waitForTimeout(timeToLive)
+      const state3 = await getErrorPromise(procedure.getState(id))
+      const err = await getErrorPromise(procedure.getResult(id))
+
+      expect(state1).toBe(CallState.Pending)
+      expect(state2).toBe(CallState.Settled)
+      expect(state3).toBeInstanceOf(CallNotFound)
+      expect(err).toBeInstanceOf(CallNotFound)
+      expect(fn).toBeCalledTimes(1)
+      expect(fn).toBeCalledWith(expect.any(AbortSignal))
+      expect(store.set).toBeCalledTimes(2)
+      expect(store.set).nthCalledWith(1, id, [StoreItemState.Pending], timeout)
+      expect(store.set).nthCalledWith(2, id, [StoreItemState.Resolved, result], timeToLive)
+      expect(store.delete).toBeCalledTimes(1)
+      expect(store.delete).toBeCalledWith(id)
+    })
   })
 
   describe('abort', () => {
-    test('pending', async () => {
-      const deferred = new Deferred<string>()
-      const fn = vi.fn(async (signal: AbortSignal) => {
-        return await withAbortSignal(signal, () => deferred)
-      })
-      const procedure = new LongRunningProcedure(fn)
-
-      const id = await procedure.call([])
-      await runAllMicrotasks()
-      procedure.abort(id)
-      await runAllMicrotasks()
-
-      const state = await procedure.getState(id)
-      expect(state).toBe(CallState.Settled)
-      const err = await getErrorPromise(procedure.getResult(id))
-      expect(err).toBeInstanceOf(AbortError)
-    })
-
-    test('resolved', async () => {
-      const deferred = new Deferred<string>()
-      const fn = vi.fn(async (signal: AbortSignal) => {
-        return await withAbortSignal(signal, () => deferred)
-      })
-      const procedure = new LongRunningProcedure(fn)
-
-      const id = await procedure.call([])
-      deferred.resolve('result')
-      await runAllMicrotasks()
-      procedure.abort(id)
-
-      const state = await procedure.getState(id)
-      expect(state).toBe(CallState.Settled)
-      const result = await procedure.getResult(id)
-      expect(result).toBe('result')
-    })
-
-    test('rejected', async () => {
+    test('call does not exist', () => {
       const deferred = new Deferred<void>()
-      const fn = vi.fn(async (signal: AbortSignal) => {
-        return await withAbortSignal(signal, () => deferred)
-      })
+      const fn = vi.fn(async (signal: AbortSignal) => await deferred)
       const procedure = new LongRunningProcedure(fn)
+      const id = 'id'
 
-      const id = await procedure.call([])
-      deferred.reject('error')
-      await runAllMicrotasks()
       procedure.abort(id)
-
-      const state = await procedure.getState(id)
-      expect(state).toBe(CallState.Settled)
-      const err = await getErrorPromise(procedure.getResult(id))
-      expect(err).toBe('error')
     })
 
-    test('aborted', async () => {
-      const deferred = new Deferred<void>()
-      const fn = vi.fn(async (signal: AbortSignal) => {
-        return await withAbortSignal(signal, () => deferred)
+    describe('call exists', () => {
+      test('pending', async () => {
+        const deferred = new Deferred<string>()
+        const fn = vi.fn(async (signal: AbortSignal) => {
+          return await withAbortSignal(signal, () => deferred)
+        })
+        const procedure = new LongRunningProcedure(fn)
+
+        const id = await procedure.call([])
+        await waitForAllMacrotasksProcessed()
+        procedure.abort(id)
+        await waitForAllMacrotasksProcessed()
+
+        const state = await procedure.getState(id)
+        expect(state).toBe(CallState.Settled)
+        const err = await getErrorPromise(procedure.getResult(id))
+        expect(err).toBeInstanceOf(AbortError)
       })
-      const procedure = new LongRunningProcedure(fn)
 
-      const id = await procedure.call([])
-      procedure.abort(id)
-      await runAllMicrotasks()
-      procedure.abort(id)
+      test('resolved', async () => {
+        const deferred = new Deferred<string>()
+        const fn = vi.fn(async (signal: AbortSignal) => {
+          return await withAbortSignal(signal, () => deferred)
+        })
+        const procedure = new LongRunningProcedure(fn)
 
-      const state = await procedure.getState(id)
-      expect(state).toBe(CallState.Settled)
-      const err = await getErrorPromise(procedure.getResult(id))
-      expect(err).toBeInstanceOf(AbortError)
+        const id = await procedure.call([])
+        deferred.resolve('result')
+        await waitForAllMacrotasksProcessed()
+        procedure.abort(id)
+
+        const state = await procedure.getState(id)
+        expect(state).toBe(CallState.Settled)
+        const result = await procedure.getResult(id)
+        expect(result).toBe('result')
+      })
+
+      test('rejected', async () => {
+        const deferred = new Deferred<void>()
+        const fn = vi.fn(async (signal: AbortSignal) => {
+          return await withAbortSignal(signal, () => deferred)
+        })
+        const procedure = new LongRunningProcedure(fn)
+
+        const id = await procedure.call([])
+        deferred.reject('error')
+        await waitForAllMacrotasksProcessed()
+        procedure.abort(id)
+
+        const state = await procedure.getState(id)
+        expect(state).toBe(CallState.Settled)
+        const err = await getErrorPromise(procedure.getResult(id))
+        expect(err).toBe('error')
+      })
+
+      test('aborted', async () => {
+        const deferred = new Deferred<void>()
+        const fn = vi.fn(async (signal: AbortSignal) => {
+          return await withAbortSignal(signal, () => deferred)
+        })
+        const procedure = new LongRunningProcedure(fn)
+
+        const id = await procedure.call([])
+        procedure.abort(id)
+        await waitForAllMacrotasksProcessed()
+        procedure.abort(id)
+
+        const state = await procedure.getState(id)
+        expect(state).toBe(CallState.Settled)
+        const err = await getErrorPromise(procedure.getResult(id))
+        expect(err).toBeInstanceOf(AbortError)
+      })
     })
   })
 
@@ -187,7 +265,7 @@ describe('LongRunningProcedure', () => {
 
         const id = await procedure.call([])
         deferred.resolve()
-        await runAllMicrotasks()
+        await waitForAllMacrotasksProcessed()
         const state = await procedure.getState(id)
 
         expect(state).toBe(CallState.Settled)
@@ -200,7 +278,7 @@ describe('LongRunningProcedure', () => {
 
         const id = await procedure.call([])
         deferred.reject('error')
-        await runAllMicrotasks()
+        await waitForAllMacrotasksProcessed()
         const state = await procedure.getState(id)
 
         expect(state).toBe(CallState.Settled)
@@ -216,7 +294,7 @@ describe('LongRunningProcedure', () => {
         const id = await procedure.call([])
         procedure.abort(id)
         try {
-          await runAllMicrotasks()
+          await waitForAllMacrotasksProcessed()
           const state = await procedure.getState(id)
 
           expect(state).toBe(CallState.Settled)
@@ -249,10 +327,10 @@ describe('LongRunningProcedure', () => {
         const promise = new StatefulPromise((resolve, reject) => {
           procedure.getResult(id).then(resolve, reject)
         })
-        await runAllMicrotasks()
+        await waitForAllMacrotasksProcessed()
         const state1 = promise.state
         deferred.resolve()
-        await runAllMicrotasks()
+        await waitForAllMacrotasksProcessed()
         const state2 = promise.state
 
         expect(state1).toBe(StatefulPromiseState.Pending)
@@ -266,7 +344,7 @@ describe('LongRunningProcedure', () => {
 
         const id = await procedure.call([])
         deferred.resolve('result')
-        await runAllMicrotasks()
+        await waitForAllMacrotasksProcessed()
         const result = await procedure.getResult(id)
 
         expect(result).toBe('result')
@@ -279,7 +357,7 @@ describe('LongRunningProcedure', () => {
 
         const id = await procedure.call([])
         deferred.reject('error')
-        await runAllMicrotasks()
+        await waitForAllMacrotasksProcessed()
         const err = await getErrorPromise(procedure.getResult(id))
 
         expect(err).toBe('error')
@@ -295,7 +373,7 @@ describe('LongRunningProcedure', () => {
         const id = await procedure.call([])
         procedure.abort(id)
         try {
-          await runAllMicrotasks()
+          await waitForAllMacrotasksProcessed()
           const err = await getErrorPromise(procedure.getResult(id))
 
           expect(err).toBeInstanceOf(AbortError)
@@ -341,7 +419,7 @@ describe('LongRunningProcedure', () => {
 
         const id = await procedure.call([])
         deferred.resolve('result')
-        await runAllMicrotasks()
+        await waitForAllMacrotasksProcessed()
         await procedure.remove(id)
 
         const err = await getErrorPromise(procedure.getState(id))
@@ -355,7 +433,7 @@ describe('LongRunningProcedure', () => {
 
         const id = await procedure.call([])
         deferred.reject('error')
-        await runAllMicrotasks()
+        await waitForAllMacrotasksProcessed()
         await procedure.remove(id)
 
         const err = await getErrorPromise(procedure.getState(id))
@@ -370,9 +448,9 @@ describe('LongRunningProcedure', () => {
         const procedure = new LongRunningProcedure(fn)
 
         const id = await procedure.call([])
-        await runAllMicrotasks()
+        await waitForAllMacrotasksProcessed()
         procedure.abort(id)
-        await runAllMicrotasks()
+        await waitForAllMacrotasksProcessed()
         await procedure.remove(id)
 
         const err = await getErrorPromise(procedure.getState(id))
@@ -382,16 +460,13 @@ describe('LongRunningProcedure', () => {
   })
 })
 
-async function runAllMicrotasks(): Promise<void> {
-  await delay(0)
-}
-
 function createMockedStore() {
   const map = new Map<string, unknown>()
 
   return {
     get: vi.fn((id: string) => {
       const result = map.get(id)
+
       return result as Nullable<
       | [StoreItemState.Pending]
       | [StoreItemState.Resolved, unknown]

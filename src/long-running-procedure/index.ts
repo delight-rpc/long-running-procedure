@@ -7,7 +7,8 @@ import { setTimeout } from 'extra-timers'
 import { Store, StoreItemState } from '@src/types.js'
 import { MemoryStore } from '@src/memory-store.js'
 import { SyncDestructor } from 'extra-defer'
-import { assert, go, pass } from '@blackglory/prelude'
+import { assert, go } from '@blackglory/prelude'
+import { waitForAllMacrotasksProcessed } from '@blackglory/wait-for'
 
 export class LongRunningProcedure<Args extends unknown[], Result, Error>
 implements ILongRunningProcedure<Args, Result> {
@@ -137,7 +138,8 @@ implements ILongRunningProcedure<Args, Result> {
             await this.eventHub.waitFor(id, Event.Settled, controller.signal)
           } catch (e) {
             if (e instanceof AbortError) {
-              pass()
+              // 防止在`store.get()`是同步函数时占用事件循环.
+              await waitForAllMacrotasksProcessed()
             } else {
               throw e
             }
