@@ -9,6 +9,7 @@ import { MemoryStore } from '@src/memory-store.js'
 import { SyncDestructor } from 'extra-defer'
 import { go } from '@blackglory/prelude'
 import { waitForAllMacrotasksProcessed } from '@blackglory/wait-for'
+import { assertNever } from 'assert-never'
 
 export class LongRunningProcedure<Args extends unknown[], Result, Error>
 implements ILongRunningProcedure<Args, Result> {
@@ -118,7 +119,7 @@ implements ILongRunningProcedure<Args, Result> {
         case StoreItemState.Pending: return CallState.Pending
         case StoreItemState.Resolved:
         case StoreItemState.Rejected: return CallState.Settled
-        default: throw new Error(`Unknown store state ${state}`)
+        default: assertNever(state, `Unknown store state ${state}`)
       }
     } else {
       throw new CallNotFound()
@@ -152,7 +153,7 @@ implements ILongRunningProcedure<Args, Result> {
         }
         case StoreItemState.Resolved: return value
         case StoreItemState.Rejected: throw value
-        default: throw new Error(`Unknown store state ${state}`)
+        default: assertNever(state, `Unknown store state ${state}`)
       }
     } else {
       throw new CallNotFound()
@@ -180,7 +181,7 @@ implements ILongRunningProcedure<Args, Result> {
 
           break
         }
-        default: throw new Error(`Unknown store state ${state}`)
+        default: assertNever(state, `Unknown store state ${state}`)
       }
     }
 
